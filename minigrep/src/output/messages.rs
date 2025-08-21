@@ -1,5 +1,5 @@
 use colored::*;
-use crate::i18n::I18n;
+use crate::output::i18n::I18n;
 
 pub struct MessageHandler {
     i18n: I18n,

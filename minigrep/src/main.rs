@@ -1,5 +1,5 @@
 use minigrep::Config;
-use minigrep::errors::ErrorHandler;
+use minigrep::output::errors::ErrorHandler;
 use std::env;
 use std::process;
 

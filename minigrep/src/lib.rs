@@ -3,15 +3,13 @@ use std::error::Error;
 use std::fs;
 use colored::*;
 
-mod messages;
-pub mod errors;
-mod i18n;
+pub mod output;
 
 pub struct Config {
     pub query: String,
     pub file_path: String,
     pub ignore_case: bool,
-    pub language: i18n::Language,
+    pub language: output::i18n::Language,
 }
 
 impl Config {
@@ -22,7 +20,7 @@ impl Config {
         let query = args[1].clone();
         let file_path = args[2].clone();
         let ignore_case = env::var("IGNORE_CASE").is_ok();
-        let language = i18n::Language::from_env();
+        let language = output::i18n::Language::from_env();
         
         Ok(Config {
             query,
@@ -34,11 +32,11 @@ impl Config {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let message_handler = messages::MessageHandler::new_with_language(
-        i18n::I18n::new_with_language(config.language.clone())
+    let message_handler = output::messages::MessageHandler::new_with_language(
+        output::i18n::I18n::new_with_language(config.language.clone())
     );
-    let error_handler = errors::ErrorHandler::new_with_language(
-        i18n::I18n::new_with_language(config.language)
+    let error_handler = output::errors::ErrorHandler::new_with_language(
+        output::i18n::I18n::new_with_language(config.language)
     );
     
     let contents = fs::read_to_string(&config.file_path).map_err(|e| {
