@@ -5,11 +5,13 @@ use colored::*;
 
 mod messages;
 pub mod errors;
+mod i18n;
 
 pub struct Config {
     pub query: String,
     pub file_path: String,
     pub ignore_case: bool,
+    pub language: i18n::Language,
 }
 
 impl Config {
@@ -20,17 +22,27 @@ impl Config {
         let query = args[1].clone();
         let file_path = args[2].clone();
         let ignore_case = env::var("IGNORE_CASE").is_ok();
+        let language = i18n::Language::from_env();
+        
         Ok(Config {
             query,
             file_path,
             ignore_case,
+            language,
         })
     }
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let message_handler = messages::MessageHandler::new_with_language(
+        i18n::I18n::new_with_language(config.language.clone())
+    );
+    let error_handler = errors::ErrorHandler::new_with_language(
+        i18n::I18n::new_with_language(config.language)
+    );
+    
     let contents = fs::read_to_string(&config.file_path).map_err(|e| {
-        errors::print_file_read_error(&config.file_path, &e.to_string());
+        error_handler.print_file_read_error(&config.file_path, &e.to_string());
         e
     })?;
     
@@ -41,12 +53,12 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     };
     
     if results.is_empty() {
-        messages::print_no_results();
+        message_handler.print_no_results();
     } else {
-        messages::print_results_count(results.len());
+        message_handler.print_results_count(results.len());
         for (line_num, line) in results {
             let highlighted_line = highlight_query(&config.query, line);
-            messages::print_line_with_number(line_num, highlighted_line);
+            message_handler.print_line_with_number(line_num, highlighted_line);
         }
     }
     Ok(())
